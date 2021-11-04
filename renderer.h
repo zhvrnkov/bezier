@@ -10,6 +10,7 @@
 
 #define SCR_WIDTH 1080.0
 #define SCR_HEIGHT 1080.0
+#define EPI 200
 
 using namespace glm;
 
@@ -18,7 +19,7 @@ typedef struct {
   GLuint vbo, vao;
   GLint viewPortUniform;
   GLint colorsUniform;
-  GLint nodesUniform;
+  GLint elementsPerInstanceUniform;
 } RenderProgram;
 
 typedef struct {
@@ -82,7 +83,8 @@ static RenderProgram makeProgram() {
   };
   glUniform3fv(colorsUniform, 3, &(colors[0][0]));
 
-  GLint nodesUniform = glGetUniformLocation(program, "nodes");
+  GLint elementsPerInstanceUniform = glGetUniformLocation(program, "elementsPerInstance");
+  glUniform1i(elementsPerInstanceUniform, EPI);
 
   RenderProgram output = {
     .program = program,
@@ -90,7 +92,7 @@ static RenderProgram makeProgram() {
     .vao = vao,
     .viewPortUniform = viewPortUniform,
     .colorsUniform = colorsUniform,
-    .nodesUniform = nodesUniform
+    .elementsPerInstanceUniform = elementsPerInstanceUniform
   };
   return output;
 }
@@ -129,6 +131,10 @@ void setNodesUniform(GLuint program, BezierNode *nodes, size_t nodesCount) {
     sprintf(buffer, "nodes[%d].color", i);
     location = glGetUniformLocation(program, buffer);
     glUniform3fv(location, 1, &(nodes[i].color[0]));
+
+    sprintf(buffer, "nodes[%d].lineWidth", i);
+    location = glGetUniformLocation(program, buffer);
+    glUniform1f(location, nodes[i].lineWidth);
   }
 }
 
@@ -141,7 +147,7 @@ void render(Renderer *renderer) {
   setNodesUniform(program->program, renderer->nodes, renderer->nodesCount);
   glDrawArraysInstanced(GL_TRIANGLES, 
                         0, 
-                        sizeof(vertices) / (sizeof(float) * 2), 
+                        EPI * 3,
                         renderer->nodesCount);
 
   glfwSwapBuffers(window);

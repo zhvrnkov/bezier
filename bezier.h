@@ -12,6 +12,7 @@ typedef struct {
   vec2 p1;
   vec2 p2;
   vec3 color;
+  float lineWidth;
 } BezierNode;
 
 float makeRandCoord() {
@@ -26,7 +27,8 @@ BezierNode makeBezierNode() {
     .p2 = vec2(makeRandCoord(), makeRandCoord()),
     .color = vec3(rand() / (float)RAND_MAX, 
                   rand() / (float)RAND_MAX, 
-                  rand() / (float)RAND_MAX)
+                  rand() / (float)RAND_MAX),
+    .lineWidth = 0.02
   };
 }
 
