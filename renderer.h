@@ -10,13 +10,13 @@
 
 #define SCR_WIDTH 1080.0
 #define SCR_HEIGHT 1080.0
-#define EPI 1
+#define EPI 200
 
 using namespace glm;
 
 typedef struct {
   GLuint program;
-  GLuint vbo, vao;
+  GLuint vbo, vao, ebo;
   GLint viewPortUniform;
   GLint colorsUniform;
   GLint elementsPerInstanceUniform;
@@ -58,16 +58,31 @@ void setupWindow() {
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 }
 
+static void makeIndices(unsigned int *indices) {
+  int index = 0;
+  for (int i = 0; i < EPI; i++) {
+    indices[index++] = i;
+    indices[index++] = i + 1;
+    indices[index++] = i + 2;
+  }
+}
+
 static RenderProgram makeProgram() {
   GLuint program = reload_shaders("./shaders/main.vert", "./shaders/main.frag", 0);
   glUseProgram(program);
 
-  GLuint vbo, vao;
+  GLuint vbo, vao, ebo;
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
+  glGenBuffers(1, &ebo);
   glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
+  unsigned int indices[3 * EPI];
+  makeIndices(indices);
+
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*)0);
@@ -90,6 +105,7 @@ static RenderProgram makeProgram() {
     .program = program,
     .vbo = vbo,
     .vao = vao,
+    .ebo = ebo,
     .viewPortUniform = viewPortUniform,
     .colorsUniform = colorsUniform,
     .elementsPerInstanceUniform = elementsPerInstanceUniform
@@ -145,10 +161,11 @@ void render(Renderer *renderer) {
   glUseProgram(program->program);
   glBindVertexArray(program->vao);
   setNodesUniform(program->program, renderer->nodes, renderer->nodesCount);
-  glDrawArraysInstanced(GL_TRIANGLES, 
-                        0, 
-                        EPI * 3,
-                        renderer->nodesCount);
+  glDrawElementsInstanced(GL_TRIANGLES, 
+                          EPI * 3,
+                          GL_UNSIGNED_INT,
+                          0,
+                          renderer->nodesCount);
 
   glfwSwapBuffers(window);
   glfwPollEvents();
