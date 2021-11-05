@@ -10,7 +10,7 @@
 
 #define SCR_WIDTH 1080.0
 #define SCR_HEIGHT 1080.0
-#define EPI 200
+#define EPI 1
 
 using namespace glm;
 

@@ -19,27 +19,27 @@ out vec3 VertexColor;
 
 void main() {
   BezierNode node = nodes[gl_InstanceID];
-  vec2 position;
-  if (gl_VertexID == 0) {
-    position = node.a;
-  }
-  else if (gl_VertexID == 1) {
-    position = node.b;
-  }
-  else if (gl_VertexID == 2) {
-    position = node.b + node.lineWidth;
-  }
-  // if (aPos.x == 1.0f && aPos.y == -1.0f) {
-  //   if ((gl_InstanceID + 1) % 2 == 0) {
-  //     gl_Position = vec4(-1,1,0,1);
-  //   }
-  //   else {
-  //     gl_Position = vec4(1.0f,-1.0f,0.0f,1.0f);
-  //   }
+
+  vec2 bFromA = node.b - node.a;
+  vec2 instanceStep = bFromA / float(1);
+  vec2 triangleBase = node.a;// + (float(gl_VertexID / 3) * instanceStep);
+  float length = float(gl_VertexID % 2) - 0.5;
+  // if (gl_VertexID % 2 == 1) {
+  //   length = -length;
   // }
-  // else {
-  //   gl_Position = vec4(aPos, 0, 1);
+  vec2 tangent = normalize(vec2(-bFromA.y, bFromA.x));
+  gl_Position = vec4(triangleBase + (tangent * length) + instanceStep, 0, 1);
+
+  // vec2 position;
+  // if (gl_VertexID == 0) {
+  //   position = node.a;
   // }
-  gl_Position = vec4(position, 0.0f, 1.0f);
+  // else if (gl_VertexID == 1) {
+  //   position = node.b;
+  // }
+  // else if (gl_VertexID == 2) {
+  //   position = node.b + node.lineWidth;
+  // }
+  // gl_Position = vec4(position, 0.0f, 1.0f);
   VertexColor = nodes[gl_InstanceID].color;
 }
